@@ -1,22 +1,21 @@
 from tkinter import *
+
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename, asksaveasfilename, askdirectory
 from tkinter.colorchooser import askcolor
 from tkinter import ttk
 from tkinter.ttk import Progressbar
-from ctypes import windll
-user32 = windll.user32
-user32.SetProcessDPIAware()
-from win32 import win32gui
-import win32con
-# from PIL import ImageGrab,ImageTk, Image
+# from ctypes import windll
+# user32 = windll.user32
+# user32.SetProcessDPIAware()
+# from win32 import win32gui
+# import win32con
+from PIL import ImageGrab,ImageTk, Image
 import math
 import os
 import io
-
 import uuid
-
-# import numpy
+import numpy
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -27,77 +26,17 @@ screensize = main.winfo_screenwidth(),main.winfo_screenheight()
 windowWidth = int(0.65 * screensize[0])
 windowHeight = int(0.6 * screensize[1])
 lineThick = int(0.01 * (screensize[0]+screensize[1])/2)
-DPI = windll.user32.GetDpiForWindow(main.winfo_id())
+# DPI = windll.user32.GetDpiForWindow(main.winfo_id())
+DPI = main.winfo_fpixels('1i')
 #print(DPI)
 #home laptop: uFont = 13, uSpace = 2, mathSpace = 15
 #study laptop: uFont = 12, uSpace = 4, mathSpace = 14
-uFont = 13
-uSpace = 2
-mathSize = 13
-boxColor = 'green'
-canvasColor = 'white'
-text_background = 'white'
-text_color = 'black'
-highlightColor = 'yellow'
-lineColor = 'black'
-invis = 1.0
 
-main.title("Austin Notes")
+main.title("Math Manipulator")
 
-class Point():
-    def __init__(self,x,y):
-        self.x = x
-        self.y = y
-class Box(Frame):
-    def __init__(self,parent,bg=boxColor):
-        self.color = bg
-        super().__init__(parent,bg=self.color,cursor="target") 
-        self.parent = parent
-        self.name = uuid.uuid1()
-        self.connected_to = []
-        self.line_connects = {}
-        self.line_id = canvas.create_line(0,0,0,0,width=10, fill=self.color)
-        self.frame = None
-        self.TLcorner = Point(-1,-1)
-        self.w = -1
-        self.h = -1
-        self.cur_anchor = ''
-        self.center = Point(-1,-1)
-    def connectTo(self,box):
-        if self.name not in box.line_connects and box.name not in self.line_connects: 
-            #print('yo')
-            self.connected_to.append(box)
-            box.connected_to.append(self)
-            x1 = self.TLcorner.x + self.w/2
-            y1 = self.TLcorner.y + self.h/2
-            x2 = box.TLcorner.x + box.w/2
-            y2 = box.TLcorner.y + box.h/2
-            l1 = canvas.create_line(x1,y1,x2,y2,width=10, fill=lineColor)
-            l2 = canvas.create_line(x1,y1,x2,y2,width=10, fill=lineColor)
-            self.line_connects[box.name] = l2
-            box.line_connects[self.name] = l1
-            #print(self.line_connects, box.line_connects)
-    #def drawConnections(self):  #used for loading     
-    def updateConnections(self): #used when redrawing lines
-        for boxes in self.connected_to:
-            if boxes.name in self.line_connects:
-                l1 = self.line_connects[boxes.name]
-                l2 = boxes.line_connects[self.name]
-                x1 = self.TLcorner.x + self.w/2
-                y1 = self.TLcorner.y + self.h/2
-                x2 = boxes.TLcorner.x + boxes.w/2
-                y2 = boxes.TLcorner.y + boxes.h/2
-                canvas.coords(l1,x1,y1,x2,y2)
-                canvas.coords(l2,x1,y1,x2,y2)
-                #print(self.line_connects, boxes.line_connects)
-    def unbindSelf(self):
-        self.unbind("<Button-1>")
-        self.unbind("<B1-Motion>")
-        self.unbind("<ButtonRelease-1>")
-
-class MathBox(Box):
-    def __init__(self,parent,bg=boxColor):
-        self.color = bg
+class MathBox(Frame):
+    def __init__(self,parent):
+        self.color = 'green'
         super().__init__(parent,bg=self.color)
         self.text_list = []
         self.text_list_orig = []
@@ -140,7 +79,7 @@ class MathBox(Box):
             self.cursor_col = 0
             self.drawMathText()
     def addMathArea(self):
-            self.label.place(x = lineThick,y=lineThick,width=self.w-(2*lineThick),height=self.h - (2*lineThick)) 
+            self.label.place(x =0,y=0,width=self.w,height=self.h) 
     def addMathText(self,text,pos=-1):
         if pos == -1:
             self.text_list.insert(len(self.text_list),text)
@@ -186,7 +125,7 @@ class MathBox(Box):
             self.ax.text(0.5,placement,'$' + texts + '$',
             horizontalalignment='center',
             verticalalignment='center',
-            fontsize=mathSize, color='black',
+            fontsize=14, color='black',
             transform=self.ax.transAxes)
         try:
             self.fig_frame.draw()
@@ -306,7 +245,7 @@ class MathBox(Box):
                         self.cursor_col += (convert - typed)
                         return True
             elif type(potential) == str:
-                print(potential)
+                # print(potential)
                 for elem in mapping:
                     if char == elem:
                         
@@ -459,7 +398,7 @@ class MathBox(Box):
                 if self.cursor_col < 0:
                     self.cursor_col = len(text)
                 # print('ya')
-            print(self.text_list[self.select][:self.cursor_col] + "bb"+self.text_list[self.select][self.cursor_col:])
+            # print(self.text_list[self.select][:self.cursor_col] + "bb"+self.text_list[self.select][self.cursor_col:])
             self.drawMathText()      
     def moveUp(self,stuff):
         if self.select != None:
@@ -485,8 +424,8 @@ class MathBox(Box):
             
 mainWindow = Frame(main)
 mainWindow.pack(fill="both", expand=True) 
-canvas = Canvas(mainWindow, bg=canvasColor,highlightthickness=1,highlightbackground="lightgray")
-canvas.pack(fill=BOTH,expand=True)
+canvas = Canvas(mainWindow,highlightthickness=1,highlightbackground="lightgray")
+canvas.pack(fill='both',expand=True)
 b1 = MathBox(canvas)
 b1.place(x=10,y=20,width=400,height=400)
 b1.w = 400
